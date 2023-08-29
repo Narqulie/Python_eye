@@ -1,2 +1,4 @@
 dataset/*
 *.log
+.DS_Store
+face_recognizer_model.yml

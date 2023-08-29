@@ -16,16 +16,22 @@ with open('label_map.json', 'r') as fp:
 # Convert string keys back to integers
 label_map = {int(k): v for k, v in str_label_map.items()}
 
+"""
+This function runs the webcam face recognition. It loads the trained model
+and label map, then starts the webcam feed. It detects faces in the webcam
+feed and predicts the label of the face. The label and confidence score is
+then displayed on the screen."""
+
 
 def run():
     # Access the webcam feed
-    cap = cv2.VideoCapture(1)
+    capture = cv2.VideoCapture(1)
 
-    if not cap.isOpened():
+    if not capture.isOpened():
         logging.error("Could not open video capture device.")
 
     while True:
-        ret, frame = cap.read()
+        ret, frame = capture.read()
         if not ret:
             break
 
@@ -47,8 +53,9 @@ def run():
         cv2.imshow("Face Recognition", frame)
 
         # Break the loop if 'q' key is pressed
+        # This is the necessary format for cv2.waitKey
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
-    cap.release()
+    capture.release()
     cv2.destroyAllWindows()

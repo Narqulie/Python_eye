@@ -59,6 +59,7 @@ def run():
     face_recognizer.save(model_path)
 
     # write out label_map to json file
+    # Convert integer keys to string because json does not support integer keys
     str_label_map = {str(key): value for key, value in label_map.items()}
     with open('label_map.json', 'w') as label_map_json:
         json.dump(str_label_map, label_map_json)
