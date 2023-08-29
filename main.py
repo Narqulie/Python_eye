@@ -46,7 +46,9 @@ def main():
             break
         else:
             logging.warning("Invalid choice. Please try again.")
+    logging.info("Program exited.")
 
 
+# This is the standard boilerplate that calls the main() function.
 if __name__ == "__main__":
     main()
