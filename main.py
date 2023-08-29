@@ -13,9 +13,9 @@ def main():
         print("1. Train face recognizer")
         print("2. Start webcam face recognition")
         print("3. Exit")
-        
+
         choice = input("Enter your choice: ")
-        
+
         if choice == "1":
             logging.info("Training face recognizer...")
             import train
@@ -25,7 +25,7 @@ def main():
             logging.info("Starting webcam face recognition...")
             import webcam_recognition
             webcam_recognition.run()  # Run the webcam face recognition script
-            
+
         elif choice == "3":
             logging.info("Exiting...")
             break

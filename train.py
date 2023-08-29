@@ -24,7 +24,7 @@ def run():
     global label_counter
     for person_name in os.listdir(dataset_path):
         person_path = os.path.join(dataset_path, person_name)
-        
+
         if os.path.isdir(person_path):
             label = label_counter  # Assign the current label for the person
             label_map[label] = person_name  # Map the label number to the person name
@@ -34,12 +34,12 @@ def run():
 
                 # Detect faces in the image
                 detected_faces = face_cascade.detectMultiScale(image, scaleFactor=1.1, minNeighbors=5)
-                
+
                 for (x, y, w, h) in detected_faces:
                     face = image[y:y+h, x:x+w]
                     faces.append(face)
                     labels.append(label)
-            
+
             label_counter += 1  # Increment the label counter after processing all images of the current person
 
     logging.info(f"Found {len(faces)} faces from {len(set(labels))} persons.")
@@ -48,13 +48,13 @@ def run():
 
     # Train the recognizer
     face_recognizer.train(faces, np.array(labels))
-    
+
     # Save the trained model
     model_path = "face_recognizer_model.yml"
     face_recognizer.save(model_path)
 
     # write out label_map to json file
-    str_label_map = {str(k): v for k, v in label_map.items()}
-    with open('label_map.json', 'w') as fp:
-        json.dump(str_label_map, fp)
+    str_label_map = {str(key): value for key, value in label_map.items()}
+    with open('label_map.json', 'w') as label_map_json:
+        json.dump(str_label_map, label_map_json)
     logging.info(f"Saved label map: {str_label_map}")

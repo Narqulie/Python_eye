@@ -35,7 +35,7 @@ def run():
             face_roi = gray[y:y+h, x:x+w]
             label, confidence = face_recognizer.predict(face_roi)
             print(f"Label: {label}, Confidence: {confidence}")
-            
+
             # Draw bounding box and label
             cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
             cv2.putText(frame, f"{label_map[label]} - {confidence:.2f}", (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
