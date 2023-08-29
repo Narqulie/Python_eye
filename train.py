@@ -5,7 +5,8 @@ import logging
 import json
 
 # Initialize face detector
-face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
+face_cascade = cv2.CascadeClassifier(
+    cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
 
 # Directory containing the dataset
 dataset_path = 'dataset/'
@@ -26,21 +27,25 @@ def run():
         person_path = os.path.join(dataset_path, person_name)
 
         if os.path.isdir(person_path):
-            label = label_counter  # Assign the current label for the person
-            label_map[label] = person_name  # Map the label number to the person name
+            # Assign the current label for the person
+            label = label_counter
+            # Map the label number to the person name
+            label_map[label] = person_name
             for image_name in os.listdir(person_path):
                 image_path = os.path.join(person_path, image_name)
-                image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)  # Convert to grayscale
+                # Convert to grayscale
+                image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
 
                 # Detect faces in the image
-                detected_faces = face_cascade.detectMultiScale(image, scaleFactor=1.1, minNeighbors=5)
+                detected_faces = face_cascade.detectMultiScale(
+                    image, scaleFactor=1.1, minNeighbors=5)
 
                 for (x, y, w, h) in detected_faces:
                     face = image[y:y+h, x:x+w]
                     faces.append(face)
                     labels.append(label)
-
-            label_counter += 1  # Increment the label counter after processing all images of the current person
+            # Increment the label counter after processing folder
+            label_counter += 1
 
     logging.info(f"Found {len(faces)} faces from {len(set(labels))} persons.")
     # Initialize the LBPH face recognizer

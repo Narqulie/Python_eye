@@ -3,7 +3,12 @@ import logging
 logging.basicConfig(filename="app.log",
                     level="INFO",
                     filemode="w",
-                    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+                    format=(
+                        "%(asctime)s"
+                        " - %(name)s"
+                        " - %(levelname)s"
+                        " - %(message)s")
+                    )
 
 
 def main():
@@ -19,13 +24,14 @@ def main():
         if choice == "1":
             logging.info("Training face recognizer...")
             import train
-            train.run()  # Run the training script
+            # Run the training script
+            train.run()
 
         elif choice == "2":
             logging.info("Starting webcam face recognition...")
             import webcam_recognition
-            webcam_recognition.run()  # Run the webcam face recognition script
-
+            # Run the webcam face recognition script
+            webcam_recognition.run()
         elif choice == "3":
             logging.info("Exiting...")
             break
