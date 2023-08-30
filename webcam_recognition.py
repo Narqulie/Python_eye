@@ -20,7 +20,8 @@ label_map = {int(k): v for k, v in str_label_map.items()}
 This function runs the webcam face recognition. It loads the trained model
 and label map, then starts the webcam feed. It detects faces in the webcam
 feed and predicts the label of the face. The label and confidence score is
-then displayed on the screen."""
+then displayed on the screen.
+"""
 
 
 def run():
