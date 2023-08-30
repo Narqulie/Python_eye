@@ -72,7 +72,7 @@ def detect_pupil(eye_region, eye_index):
         logging.warning("No circles detected.")
         i = last_known_pupil.get(eye_index, (0, 0))
         # Using 10 as a default radius
-        cv2.circle(eye_region, (i[0], i[1]), 10, (0, 255, 0), 2)  
+        cv2.circle(eye_region, (i[0], i[1]), 10, (0, 255, 0), 2)
         cv2.circle(eye_region, (i[0], i[1]), 2, (0, 0, 255), 3)
 
     return eye_region
@@ -117,7 +117,7 @@ def calibration(cap):
         logging.info(f"Calibrating at {coord}")
         display_marker(*coord)
         # Give the user time to focus on the marker
-        time.sleep(2)  
+        time.sleep(2)
 
         # Capture a frame and get the pupil position
         ret, frame = cap.read()
@@ -127,7 +127,8 @@ def calibration(cap):
             break
         frame = track_eyes(frame)
         # Assuming you get the pupil position from the `track_eyes` function
-        logging.info(f"Getting pupil position: {last_known_pupil.get(0, (0, 0))}")
+        logging.info(f"Getting pupil position: "
+                     f"{last_known_pupil.get(0, (0, 0))}")
         pupil_positions.append(last_known_pupil.get(0, (0, 0)))
 
     # Close the calibration window
@@ -141,14 +142,14 @@ marker is a green dot with a radius of 50 pixels.
 """
 def display_marker(x, y):
     cv2.namedWindow("Calibration", cv2.WINDOW_NORMAL)
-    cv2.resizeWindow("Calibration", SCREEN_WIDTH, SCREEN_HEIGHT)
+    cv2.resizeWindow("Calibration", screen_width, screen_height)
     cv2.moveWindow("Calibration", 0, 0)
-    blank_image = np.zeros((SCREEN_HEIGHT, SCREEN_WIDTH, 3), dtype=np.uint8)
+    blank_image = np.zeros((screen_height, screen_width, 3), dtype=np.uint8)
     # Green dot as the marker
-    cv2.circle(blank_image, (x, y), 10, (0, 255, 0), -1)  
+    cv2.circle(blank_image, (x, y), 10, (0, 255, 0), -1)
     cv2.imshow("Calibration", blank_image)
     # Wait for 100 ms to update window content
-    cv2.waitKey(100)  
+    cv2.waitKey(100)
 
 
 """
@@ -157,7 +158,7 @@ starts the calibration process. It then starts the webcam feed and tracks
 the eyes in the feed."""
 def run():
     # Open default camera
-    cap = cv2.VideoCapture(1)  
+    cap = cv2.VideoCapture(1)
 
     # Start the calibration process
     calibration(cap)
