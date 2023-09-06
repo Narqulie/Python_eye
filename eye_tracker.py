@@ -74,7 +74,6 @@ def detect_pupil(eye_region, eye_index):
         # Using 10 as a default radius
         cv2.circle(eye_region, (i[0], i[1]), 10, (0, 255, 0), 2)
         cv2.circle(eye_region, (i[0], i[1]), 2, (0, 0, 255), 3)
-
     return eye_region
 
 
@@ -141,12 +140,12 @@ This function displays a marker on the screen at the given coordinates. The
 marker is a green dot with a radius of 50 pixels.
 """
 def display_marker(x, y):
-    cv2.namedWindow("Calibration", cv2.WINDOW_NORMAL)
+    cv2.namedWindow("Calibration", cv2.WINDOW_FULLSCREEN)
     cv2.resizeWindow("Calibration", screen_width, screen_height)
-    cv2.moveWindow("Calibration", 0, 0)
+    cv2.moveWindow("Calibration", x, y)
     blank_image = np.zeros((screen_height, screen_width, 3), dtype=np.uint8)
     # Green dot as the marker
-    cv2.circle(blank_image, (x, y), 10, (0, 255, 0), -1)
+    cv2.circle(blank_image, (x, y), 20, (0, 255, 0), -1)
     cv2.imshow("Calibration", blank_image)
     # Wait for 100 ms to update window content
     cv2.waitKey(100)
