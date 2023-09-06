@@ -1,7 +1,8 @@
 import cv2
-import logging
+from main import logging
 import numpy as np
 import time
+import pyautogui
 
 face_cascade = cv2.CascadeClassifier(
     cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
@@ -69,7 +70,7 @@ def detect_pupil(eye_region, eye_index):
         cv2.circle(eye_region, (i[0], i[1]), i[2], (0, 255, 0), 2)
         cv2.circle(eye_region, (i[0], i[1]), 2, (0, 0, 255), 3)
     else:
-        logging.warning("No circles detected.")
+        logging.info("No circles detected.")
         i = last_known_pupil.get(eye_index, (0, 0))
         # Using 10 as a default radius
         cv2.circle(eye_region, (i[0], i[1]), 10, (0, 255, 0), 2)
@@ -77,7 +78,7 @@ def detect_pupil(eye_region, eye_index):
     return eye_region
 
 
-"""
+""" ------------------------ Calibration ------------------------
 This part of the code is building a gaze-based interaction system. The
 calibration process is used to map the pupil position to the screen
 coordinates. The calibration process is done by displaying a marker on the
@@ -107,7 +108,7 @@ pupil_positions = []
 This function runs the calibration process. It displays a marker on the
 screen and asks the user to focus on the marker. The pupil position is then
 recorded and mapped to the screen coordinates. This process is repeated for
-a few points on the screen. The calibration points are the center of the
+five points on the screen. The calibration points are the center of the
 screen, top-left, top-right, bottom-left, and bottom-right.
 """
 def calibration(cap):
@@ -140,15 +141,30 @@ This function displays a marker on the screen at the given coordinates. The
 marker is a green dot with a radius of 50 pixels.
 """
 def display_marker(x, y):
-    cv2.namedWindow("Calibration", cv2.WINDOW_FULLSCREEN)
+    cv2.namedWindow("Calibration", cv2.WINDOW_NORMAL)
     cv2.resizeWindow("Calibration", screen_width, screen_height)
-    cv2.moveWindow("Calibration", x, y)
+    cv2.moveWindow("Calibration", 0, 0)
     blank_image = np.zeros((screen_height, screen_width, 3), dtype=np.uint8)
     # Green dot as the marker
-    cv2.circle(blank_image, (x, y), 20, (0, 255, 0), -1)
+    cv2.circle(blank_image, (x, y), 10, (0, 255, 0), -1)
     cv2.imshow("Calibration", blank_image)
     # Wait for 100 ms to update window content
     cv2.waitKey(100)
+
+
+def move_cursor_based_on_gaze(gaze_position, video_feed_dimensions):
+    """Move the cursor based on the gaze position."""
+    
+    # Normalize the gaze position
+    normalized_gaze_x = gaze_position[0] / video_feed_dimensions[0]
+    normalized_gaze_y = gaze_position[1] / video_feed_dimensions[1]
+    
+    # Scale to screen dimensions
+    screen_x = int(normalized_gaze_x * screen_width)
+    screen_y = int(normalized_gaze_y * screen_height)
+    
+    pyautogui.moveTo(screen_x, screen_y)
+
 
 
 """
@@ -158,6 +174,9 @@ the eyes in the feed."""
 def run():
     # Open default camera
     cap = cv2.VideoCapture(1)
+    video_feed_width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
+    video_feed_height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+    logging.info(f"Video feed dimensions: {video_feed_width}x{video_feed_height}")
 
     # Start the calibration process
     calibration(cap)
@@ -167,10 +186,12 @@ def run():
         if not ret:
             break
         frame = track_eyes(frame)
+        gaze_position = last_known_pupil.get(0, (0, 0))
+        move_cursor_based_on_gaze(gaze_position, (video_feed_width,
+                                                  video_feed_height))
         cv2.imshow("Eye Tracking", frame)
         if cv2.waitKey(1) & 0xFF == ord("q"):
             break
-
     cap.release()
     cv2.destroyAllWindows()
 

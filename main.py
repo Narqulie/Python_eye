@@ -1,7 +1,7 @@
 import logging
 
 logging.basicConfig(filename="app.log",
-                    level="INFO",
+                    level="DEBUG",
                     filemode="w",
                     format=(
                         "%(asctime)s"
