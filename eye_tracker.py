@@ -4,14 +4,18 @@ import numpy as np
 import time
 import pyautogui
 
+# Define the Haar Cascade paths for face and eye detection
 face_cascade = cv2.CascadeClassifier(
     cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
 eye_cascade = cv2.CascadeClassifier(
     cv2.data.haarcascades + "haarcascade_eye.xml")
+mouth_cascade = cv2.CascadeClassifier(
+    cv2.data.haarcascades + "haarcascade_mcs_mouth.xml")
 
+# Define the last known pupil position
 last_known_pupil = {}
 
-"""
+"""------------------------ Eye Tracking ------------------------
 The function first converts the frame to grayscale and then detects faces
 in the frame. For each face, the function detects eyes and draws bounding
 boxes around them. The function also calls the `detect_pupil` function to
@@ -19,6 +23,7 @@ detect the pupil in each eye.
 """
 def track_eyes(frame):
     logging.info("Tracking eyes...")
+    cv2.imshow("Eye Tracking", frame)
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     faces = face_cascade.detectMultiScale(gray, 1.3, 5)
 
@@ -26,25 +31,34 @@ def track_eyes(frame):
         roi_gray = gray[y:y+h, x:x+w]
         roi_color = frame[y:y+h, x:x+w]
         eyes = eye_cascade.detectMultiScale(
-            roi_gray, scaleFactor=1.07, minNeighbors=45, minSize=(20, 20))
+            roi_color, scaleFactor=1.07, minNeighbors=45, minSize=(20, 20))
         for idx, (ex, ey, ew, eh) in enumerate(eyes):
             cv2.rectangle(roi_color, (ex, ey), (ex+ew, ey+eh), (0, 255, 0), 2)
+            cv2.putText(
+                roi_color, "eye",
+                (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
             eye_roi = roi_color[ey:ey+eh, ex:ex+ew]
             modified_eye_region = detect_pupil(eye_roi, idx)
+            detect_mouth(roi_color)
             roi_color[ey:ey+eh, ex:ex+ew] = modified_eye_region
 
     return frame
 
 
-"""
+"""------------------------ Pupil Detection ------------------------
 The function first converts the eye region to grayscale and then applies
 adaptive thresholding to the eye region. It then uses the HoughCircles
 function to detect circles in the eye region. If circles are detected, the
 function draws a bounding box around the circle and marks the center of the
 circle. If no circles are detected, the function uses the last known pupil
-position to draw a bounding box and mark the center of the pupil.
+position to draw a circle and mark the center of the pupil.
 """
 def detect_pupil(eye_region, eye_index):
+    
+    # Retrieve the values from the trackbars
+    param1 = cv2.getTrackbarPos('Param1', 'Parameters')+1
+    param2 = cv2.getTrackbarPos('Param2', 'Parameters')+1
+
     global last_known_pupil
     logging.info("Detecting pupil...")
 
@@ -52,13 +66,15 @@ def detect_pupil(eye_region, eye_index):
     thresh_eye = cv2.adaptiveThreshold(
         eye_region_gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
         cv2.THRESH_BINARY_INV, 11, 2)
-
+    
+    if param1 == -1 or 0 and param2 == -1 or 0:
+        param1, param2 = 100, 30
     # Detect circles using HoughCircles
     circles = cv2.HoughCircles(
         thresh_eye,
         cv2.HOUGH_GRADIENT, 1, 20,
-        param1=100,
-        param2=30,
+        param1=param1,
+        param2=param2,
         minRadius=5,
         maxRadius=30)
 
@@ -78,119 +94,53 @@ def detect_pupil(eye_region, eye_index):
     return eye_region
 
 
-""" ------------------------ Calibration ------------------------
-This part of the code is building a gaze-based interaction system. The
-calibration process is used to map the pupil position to the screen
-coordinates. The calibration process is done by displaying a marker on the
-screen and asking the user to focus on the marker. The pupil position is
-then recorded and mapped to the screen coordinates. This process is repeated
-for a few points on the screen. The calibration points are the center of the
-screen, top-left, top-right, bottom-left, and bottom-right.
-"""
+"""------------------------ Mouth Detection ------------------------
+The function first converts the frame to grayscale and then detects faces
+in the frame. For each face, the function detects mouths and draws bounding"""
+def detect_mouth(frame):
+    logging.info("Detecting mouth...")
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    mouths = mouth_cascade.detectMultiScale(
+        gray, scaleFactor=1.07, minNeighbors=45, minSize=(80, 100))
+    for (x, y, w, h) in mouths:
+        cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
+        cv2.putText(
+                frame, "smile",
+                (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+    return frame
 
-# Adjust for your screen resolution
-screen_width = 1719
-screen_height = 1112
+"""------------------------ Trackbar------------------------
+This function is used as a placeholder for the trackbar functions."""""
+def nothing(x):
+    pass
 
-calibration_points = 5
-
-calibration_coords = [
-    (screen_width // 2, screen_height // 2),  # center
-    (0, 0),                                   # top-left
-    (screen_width, 0),                        # top-right
-    (0, screen_height),                       # bottom-left
-    (screen_width, screen_height)             # bottom-right
-]
-pupil_positions = []
-
-
-"""
-This function runs the calibration process. It displays a marker on the
-screen and asks the user to focus on the marker. The pupil position is then
-recorded and mapped to the screen coordinates. This process is repeated for
-five points on the screen. The calibration points are the center of the
-screen, top-left, top-right, bottom-left, and bottom-right.
-"""
-def calibration(cap):
-    logging.info("Starting calibration...")
-    for coord in calibration_coords:
-        logging.info(f"Calibrating at {coord}")
-        display_marker(*coord)
-        # Give the user time to focus on the marker
-        time.sleep(2)
-
-        # Capture a frame and get the pupil position
-        ret, frame = cap.read()
-        logging.info("Capturing frame...")
-        if not ret:
-            logging.error("Failed to capture frame.")
-            break
-        frame = track_eyes(frame)
-        # Assuming you get the pupil position from the `track_eyes` function
-        logging.info(f"Getting pupil position: "
-                     f"{last_known_pupil.get(0, (0, 0))}")
-        pupil_positions.append(last_known_pupil.get(0, (0, 0)))
-
-    # Close the calibration window
-    logging.info("Closing calibration window...")
-    cv2.destroyAllWindows()
-
-
-"""
-This function displays a marker on the screen at the given coordinates. The
-marker is a green dot with a radius of 50 pixels.
-"""
-def display_marker(x, y):
-    cv2.namedWindow("Calibration", cv2.WINDOW_NORMAL)
-    cv2.resizeWindow("Calibration", screen_width, screen_height)
-    cv2.moveWindow("Calibration", 0, 0)
-    blank_image = np.zeros((screen_height, screen_width, 3), dtype=np.uint8)
-    # Green dot as the marker
-    cv2.circle(blank_image, (x, y), 10, (0, 255, 0), -1)
-    cv2.imshow("Calibration", blank_image)
-    # Wait for 100 ms to update window content
-    cv2.waitKey(100)
-
-
-def move_cursor_based_on_gaze(gaze_position, video_feed_dimensions):
-    """Move the cursor based on the gaze position."""
-    
-    # Normalize the gaze position
-    normalized_gaze_x = gaze_position[0] / video_feed_dimensions[0]
-    normalized_gaze_y = gaze_position[1] / video_feed_dimensions[1]
-    
-    # Scale to screen dimensions
-    screen_x = int(normalized_gaze_x * screen_width)
-    screen_y = int(normalized_gaze_y * screen_height)
-    
-    pyautogui.moveTo(screen_x, screen_y)
+cv2.namedWindow("Parameters", cv2.WINDOW_NORMAL)
+cv2.createTrackbar('Param1', 'Parameters', 100, 300, nothing)
+cv2.createTrackbar('Param2', 'Parameters', 30, 100, nothing)
 
 
 
-"""
+"""------------------------ Run ------------------------
 This is the main function of the program. It opens the default camera and
 starts the calibration process. It then starts the webcam feed and tracks
 the eyes in the feed."""
 def run():
+    global param1, param2
     # Open default camera
     cap = cv2.VideoCapture(1)
     video_feed_width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
     video_feed_height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
-    logging.info(f"Video feed dimensions: {video_feed_width}x{video_feed_height}")
-
-    # Start the calibration process
-    calibration(cap)
+    logging.info("Video feed dimensions: "
+                 f"{video_feed_width}x{video_feed_height}")
 
     while True:
         ret, frame = cap.read()
         if not ret:
             break
         frame = track_eyes(frame)
-        gaze_position = last_known_pupil.get(0, (0, 0))
-        move_cursor_based_on_gaze(gaze_position, (video_feed_width,
-                                                  video_feed_height))
         cv2.imshow("Eye Tracking", frame)
-        if cv2.waitKey(1) & 0xFF == ord("q"):
+        key = cv2.waitKey(100) & 0xFF
+        if key == ord("q"):
             break
     cap.release()
     cv2.destroyAllWindows()
