@@ -1,8 +1,6 @@
 import cv2
 from main import logging
 import numpy as np
-import time
-import pyautogui
 
 # Define the Haar Cascade paths for face and eye detection
 face_cascade = cv2.CascadeClassifier(
@@ -109,6 +107,7 @@ def detect_mouth(frame):
                 (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
     return frame
 
+
 """------------------------ Trackbar------------------------
 This function is used as a placeholder for the trackbar functions."""""
 def nothing(x):
@@ -145,5 +144,5 @@ def run():
     cap.release()
     cv2.destroyAllWindows()
 
-
+# Start the program
 run()

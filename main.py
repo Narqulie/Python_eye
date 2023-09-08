@@ -23,7 +23,8 @@ def main():
         print("Choose an option:")
         print("1. Train face recognizer")
         print("2. Start webcam face recognition")
-        print("3. Exit")
+        print("3. Start eye-tracking")
+        print("4. Exit")
 
         choice = input("Enter your choice: ")
 
@@ -41,6 +42,13 @@ def main():
             # Run the webcam face recognition script
             webcam_recognition.run()
         elif choice == "3":
+            logging.info("Starting eye-tracking...")
+            # Import eye_tracker module here to avoid circular imports
+            import eye_tracker
+            # Run the eye tracking script
+            eye_tracker.run()
+
+        elif choice == "4":
             logging.info("Exiting...")
             # Exit the program
             break
