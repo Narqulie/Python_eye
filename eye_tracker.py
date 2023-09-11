@@ -26,7 +26,7 @@ def track_eyes(frame):
     faces = face_cascade.detectMultiScale(gray, 1.3, 5)
 
     for (x, y, w, h) in faces:
-        roi_gray = gray[y:y+h, x:x+w]
+        # roi_gray = gray[y:y+h, x:x+w]
         roi_color = frame[y:y+h, x:x+w]
         eyes = eye_cascade.detectMultiScale(
             roi_color, scaleFactor=1.07, minNeighbors=45, minSize=(20, 20))
@@ -52,7 +52,6 @@ circle. If no circles are detected, the function uses the last known pupil
 position to draw a circle and mark the center of the pupil.
 """
 def detect_pupil(eye_region, eye_index):
-    
     # Retrieve the values from the trackbars
     param1 = cv2.getTrackbarPos('Param1', 'Parameters')+1
     param2 = cv2.getTrackbarPos('Param2', 'Parameters')+1
@@ -64,7 +63,6 @@ def detect_pupil(eye_region, eye_index):
     thresh_eye = cv2.adaptiveThreshold(
         eye_region_gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
         cv2.THRESH_BINARY_INV, 11, 2)
-    
     if param1 == -1 or 0 and param2 == -1 or 0:
         param1, param2 = 100, 30
     # Detect circles using HoughCircles
@@ -113,10 +111,10 @@ This function is used as a placeholder for the trackbar functions."""""
 def nothing(x):
     pass
 
+
 cv2.namedWindow("Parameters", cv2.WINDOW_NORMAL)
 cv2.createTrackbar('Param1', 'Parameters', 100, 300, nothing)
 cv2.createTrackbar('Param2', 'Parameters', 30, 100, nothing)
-
 
 
 """------------------------ Run ------------------------
@@ -143,6 +141,7 @@ def run():
             break
     cap.release()
     cv2.destroyAllWindows()
+
 
 # Start the program
 run()
